@@ -1,8 +1,11 @@
 const express = require('express');
+var cors = require('cors')
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 
 const app = express();
+
+app.use(cors())
 
 /* configure body-parser */
 app.use(bodyParser.json())
@@ -18,16 +21,15 @@ mongoose.connect("mongodb+srv://toanocchocute:toandeptrai@store.ec6vh.mongodb.ne
     process.exit();
 });
 
-const { auth_route, user_route, review_router  } = require('./routes');
+const { auth_route, user_route, review_router, destination_router  } = require('./routes');
 
 app.use('/api/v1/auth', auth_route);
 app.use('/api/v1/users', user_route);
 app.use('/api/v1/review', review_router)
+app.use('/api/v1/destination', destination_router)
 
-// app.get('/', (req, res) => {
-//     res.send('Hello World')
-//   })
 
-app.listen(1000, () => {
-    console.log("Server is listening on port 1000");
+
+app.listen(4000, () => {
+    console.log("Server is listening on port 4000");
 });
