@@ -3,15 +3,10 @@ const { v4: uuidv4 } = require("uuid"); // Import hàm tạo UUID
 
 const DestinationSchema = new mongoose.Schema(
   {
-    // destination_id: {
-    //   type: String, // Đổi thành String để sử dụng UUID
-    //   default: uuidv4, // Tạo UUID tự động khi thêm document mới
-    //   unique: true,
-    //   index: true,
-    // },
     name: {
       type: String,
       required: true,
+      index  : true
     },
     description: {
       type: String,
