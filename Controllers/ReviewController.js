@@ -1,3 +1,4 @@
+const Destination = require("../models/Destination");
 const Review = require('../models/Review');
 
 const ReviewController = {
@@ -10,7 +11,7 @@ const ReviewController = {
             res.status(422).json({
                 type: "not invalid",
                 message: "Something went wrong please try again",
-                
+
             })
             return
         }
@@ -24,12 +25,26 @@ const ReviewController = {
                 review: req.body.review
             }
         }, { upsert: true })
+        
+        results = await Review.find({
+            destination_id: destination_id
+        })
+        count = results.length
+        total_rating = 0
+        results.forEach(element => {
+            total_rating = total_rating + element.rating
+        });
+        new_avg = total_rating/count
+        new_avg = new_avg.toFixed(1)
+        await Destination.updateOne({ "_id": destination_id }, { "$set": { "rating": new_avg } })
+        
+
         res.status(200).json({
             type: "success",
             message: "add success",
-            data : {
-                modifiedCount : is_update.modifiedCount,
-                upsertedCount : is_update.upsertedCount
+            data: {
+                modifiedCount: is_update.modifiedCount,
+                upsertedCount: is_update.upsertedCount
             }
         })
     }

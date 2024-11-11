@@ -2,79 +2,101 @@ const { model } = require('mongoose');
 const Destination = require('../models/Destination');
 
 const FiltersController = {
+    // Search method with text index
     async Search(req, res) {
         try {
-            // Kiểm tra nếu query tìm kiếm không tồn tại
-            if (!req.query.q) {
+            const searchQuery = req.query.q ? req.query.q.trim() : "";
+
+            if (!searchQuery) {
                 return res.status(400).json({
                     type: "error",
                     message: "Query tìm kiếm không được để trống.",
                 });
             }
 
-            // Tạo query tìm kiếm, sử dụng $text search để tìm các tài liệu chứa từ khóa
-            const searchQuery = { $text: { $search: `"${req.query.q}"` } };
+            // Set up pagination and sorting options
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const skip = (page - 1) * limit;
 
-            // Tìm các tài liệu phù hợp với điều kiện tìm kiếm
-            const docs = await Destination.find(searchQuery);
+            // Construct the search query
+            const query = { $text: { $search: searchQuery } };
 
-            // Trả kết quả
+            // Fetch matching documents with pagination and sorting
+            const docs = await Destination.find(query)
+                .skip(skip)
+                .limit(limit)
+                .sort({ score: { $meta: "textScore" } }) // Sort by text search relevance
+                .exec();
+
+            // Get total matching document count for pagination
+            const totalDocs = await Destination.countDocuments(query);
+
+            // Return results with pagination info
             res.status(200).json({
                 type: "success",
+                page,
+                limit,
+                totalDocs,
+                totalPages: Math.ceil(totalDocs / limit),
                 docs,
             });
         } catch (error) {
-            // Xử lý lỗi
+            console.error("Search error:", error);
             res.status(500).json({
                 type: "error",
                 message: "Đã xảy ra lỗi trong quá trình tìm kiếm.",
                 error: error.message,
             });
         }
-    }, 
+    },
 
+    // Filter method
     async Filter(req, res) {
         try {
-            // Lấy thông tin lọc từ query string
-            const { location, service, rating, minPrice, maxPrice, category } = req.body;
+            const { location, service, rating, minPrice, maxPrice, category, page = 1, limit = 10 } = req.body;
 
-            // Tạo điều kiện lọc động
-            let filter = {};
+            // Initialize filter object
+            const filter = {};
 
-            if (location) {
-                filter.location = location;
-            }
+            // Build dynamic filters
+            if (location) filter.location = location;
+            if (service) filter.service = service;
+            if (category) filter.category = category;
+            if (rating) filter.rating = { $gte: parseInt(rating), $lt: parseInt(rating) + 1 };
+            if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
+            if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
 
-            if (service) {
-                filter.service = service;
-            }
-            if (rating) {
-                filter.rating = { ...filter.rating, $gte: parseInt(rating),  $lte: parseInt(rating)+1};
-            }
+            // Pagination settings
+            const skip = (parseInt(page) - 1) * parseInt(limit);
 
-            if (minPrice) {
-                filter.price = { ...filter.price, $gte: parseFloat(minPrice) }; // Giá tối thiểu
-            }
+            // Query the database based on filters
+            const docs = await Destination.find(filter)
+                .skip(skip)
+                .limit(parseInt(limit))
+                .exec();
 
-            if (maxPrice) {
-                filter.price = { ...filter.price, $lte: parseFloat(maxPrice) }; // Giá tối đa
-            }
+            // Get the total count of documents for pagination
+            const totalDocs = await Destination.countDocuments(filter);
 
-            if (category) {
-                filter.category = category;
-            }
-
-            // Truy vấn dữ liệu dựa trên điều kiện lọc
-            const docs = await Destination.find(filter);
-
-            // Trả kết quả
-            res.status(200).json(docs);
+            // Return results with pagination info
+            res.status(200).json({
+                type: "success",
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalDocs,
+                totalPages: Math.ceil(totalDocs / limit),
+                docs,
+            });
         } catch (error) {
-            res.status(500).json({ message: 'Đã xảy ra lỗi', error });
+            console.error("Filter error:", error);
+            res.status(500).json({
+                type: "error",
+                message: "Đã xảy ra lỗi trong quá trình lọc.",
+                error: error.message,
+            });
         }
     }
+};
 
-}
-
-module.exports = FiltersController
-
+module.exports = FiltersController;

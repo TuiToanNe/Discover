@@ -9,12 +9,10 @@ const ReviewSchema = new mongoose.Schema({
     user_id:{
         type : String,
         require:true,
-        unique:true,
     },
     rating:{
         type : Number,
         require:true,
-        unique:true,
     },
     review:{
         type : String,

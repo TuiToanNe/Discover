@@ -5,7 +5,7 @@ const DestinationController = {
 
     async listDestination (req, res, next) {
         try {
-            const destinations = await destination.find({});
+            const destinations = await destination.aggregate();
             res.status(200).json(destinations); 
         } catch (error) {
             console.log(error)
