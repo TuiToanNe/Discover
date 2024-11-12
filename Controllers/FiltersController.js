@@ -5,44 +5,35 @@ const FiltersController = {
     // Search method with text index
     async Search(req, res) {
         try {
-            const searchQuery = req.query.q ? req.query.q.trim() : "";
-
-            if (!searchQuery) {
+            // Kiểm tra nếu query tìm kiếm không tồn tại
+            if (!req.query.q) {
                 return res.status(400).json({
                     type: "error",
                     message: "Query tìm kiếm không được để trống.",
                 });
             }
 
-            // Set up pagination and sorting options
-            const page = parseInt(req.query.page) || 1;
-            const limit = parseInt(req.query.limit) || 10;
-            const skip = (page - 1) * limit;
+            let searchQuery;
+            const queryText = req.query.q.trim();
 
-            // Construct the search query
-            const query = { $text: { $search: searchQuery } };
+            if (queryText.includes(" ") || queryText.length > 1) {
+                // Tìm kiếm cụm từ chính xác hoặc từ có độ dài lớn hơn 1 ký tự
+                searchQuery = { $text: { $search: `"${queryText}"` } };
+            } else {
+                // Tìm kiếm một ký tự hoặc từ ngắn, sử dụng regex
+                searchQuery = { name: { $regex: queryText, $options: "i" } };
+            }
 
-            // Fetch matching documents with pagination and sorting
-            const docs = await Destination.find(query)
-                .skip(skip)
-                .limit(limit)
-                .sort({ score: { $meta: "textScore" } }) // Sort by text search relevance
-                .exec();
+            // Tìm các tài liệu phù hợp với điều kiện tìm kiếm
+            const docs = await Destination.find(searchQuery);
 
-            // Get total matching document count for pagination
-            const totalDocs = await Destination.countDocuments(query);
-
-            // Return results with pagination info
+            // Trả kết quả
             res.status(200).json({
                 type: "success",
-                page,
-                limit,
-                totalDocs,
-                totalPages: Math.ceil(totalDocs / limit),
                 docs,
             });
         } catch (error) {
-            console.error("Search error:", error);
+            // Xử lý lỗi
             res.status(500).json({
                 type: "error",
                 message: "Đã xảy ra lỗi trong quá trình tìm kiếm.",
@@ -50,6 +41,7 @@ const FiltersController = {
             });
         }
     },
+
 
     // Filter method
     async Filter(req, res) {
