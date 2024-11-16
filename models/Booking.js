@@ -4,7 +4,6 @@ const BookingSchema = new mongoose.Schema({
     destination_id: {
         type: String,
         require: true,
-        unique: true,
     },
     destination: {
         type: String,

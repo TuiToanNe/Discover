@@ -46,13 +46,12 @@ const FiltersController = {
     // Filter method
     async Filter(req, res) {
         try {
-            const { location, service, rating, minPrice, maxPrice, category, page = 1, limit = 10 } = req.body;
-
+            const { address, service, rating, minPrice, maxPrice, category, page = 1, limit = 10 } = req.body;
             // Initialize filter object
             const filter = {};
 
             // Build dynamic filters
-            if (location) filter.location = location;
+            if (address) filter.address = address;
             if (service) filter.service = service;
             if (category) filter.category = category;
             if (rating) filter.rating = { $gte: parseInt(rating), $lt: parseInt(rating) + 1 };

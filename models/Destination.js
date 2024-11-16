@@ -8,10 +8,6 @@ const DestinationSchema = new mongoose.Schema(
       required: true,
       index  : true
     },
-    description: {
-      type: String,
-      required: true,
-    },
     category: {
       type: String,
       required: true,
@@ -21,30 +17,46 @@ const DestinationSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    description: {
+      type: String,
+      required: true,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
     rating: {
       type: Number,
       index: true,
     },
     location: {
       type: String,
-      required: true,
+      // required: true,
       index: true,
     },
     open_hours: {
       type: String,
       required: true,
     },
-    image_url: {
+    close_hours: {
       type: String,
       required: true,
+    },
+    transportation: {
+      type: String,
+      required: true,
+    },
+    image_url: {
+      type: String,
+      // required: true,
     },
     distance: {
       type: String,
-      required: true,
+      // required: true,
     },
     service: {
       type: String,
-      required: true,
+      // required: true,
     },
   },
   { timestamps: true }
@@ -64,5 +76,4 @@ const DestinationSchema = new mongoose.Schema(
 //   }
 //   next();
 // });
-
-module.exports = mongoose.model("Destination", DestinationSchema);
+module.exports = mongoose.model('Destination', DestinationSchema);
