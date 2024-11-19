@@ -5,9 +5,7 @@ const { accessLevelVerifier, isAdminVerifier, authenticationVerifier } = require
 const { UserController } = require('../Controllers');
 
 router.get('/', authenticationVerifier, UserController.get_user);
-// router.get('/:id', isAdminVerifier, UserController.get_user);
-// router.get('/stats', isAdminVerifier, UserController.get_stats);
-// router.put('/:id', accessLevelVerifier, UserController.update_user);
-// router.delete('/:id', isAdminVerifier, UserController.delete_user);
+router.put("/update-user-details", authenticationVerifier, UserController.update_user_details);
+router.delete('/delete',authenticationVerifier, UserController.delete_user);
 
 module.exports = router;
