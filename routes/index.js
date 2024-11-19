@@ -3,11 +3,14 @@ const user_route = require('./Users');
 const review_router = require('./Review')
 const destination_router = require('./Destination')
 const filters_router = require('./Filters')
+const otp_router = require('./Otp')
 
 module.exports = {
     auth_route,
     user_route,
     review_router,
     destination_router,
-    filters_router
+    filters_router,
+    otp_router,
+    
 };

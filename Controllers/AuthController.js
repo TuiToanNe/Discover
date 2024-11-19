@@ -4,87 +4,59 @@ const jwt = require('jsonwebtoken');
 
 const api_config = require("../configs/api.js");
 
-const sendEmail = require("../utils/mail.js")
 
-gen_veritymail_token = (username) => {
-    const verifyToken = jwt.sign({
-        username: username,
-        type: "verify"
-    },
-        api_config.api.jwt_secret,
-    );
-    return verifyToken;
-}
+const OTP = require('../models/Otp');
 
 
 const AuthController = {
 
-    /* create new user */
-    async create_user(req, res, next) {
-        const newUser = new Users({
-            username: req.body.username,
-            email: req.body.email,
-            phone: req.body.phone,
-            user_type: "user",
-            password: bcrypt.hashSync(req.body.password, 10)
-        });
-
+    async sign_up(req,res, next) {
         try {
-            const user = await newUser.save();
-            let is_sendmail = sendEmail(req.body.email, "verify account", `link : http://localhost:1000/api/v1/auth/verify?token=${gen_veritymail_token(req.body.username)}`)
-            if (!is_sendmail) {
-                res.status(500).json({
-                    type: 'error',
-                    message: "Khong the goi mail",
-                })
-                return
+            const { username, email,phone, password, otp } = req.body;
+            // Check if all details are provided
+            if (!username || !email || !password || !otp || !phone) {
+              return res.status(403).json({
+                success: false,
+                message: 'All fields are required',
+              });
+            }
+            // Check if user already exists
+            const existingUser = await Users.findOne({ email, username });
+            if (existingUser) {
+              return res.status(400).json({
+                success: false,
+                message: 'User already exists',
+              });
+            }
+            // Find the most recent OTP for the email
+            const response = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
+            if (response.length === 0 || otp !== response[0].otp) {
+              return res.status(400).json({
+                success: false,
+                message: 'The OTP is not valid',
+              });
             }
             
-            res.status(201).json({
-                type: 'success',
-                message: "kiem tra mail de verify",
-            })
-        } catch (err) {
-            res.status(500).json({
-                type: "error",
-                message: "Something went wrong please try again",
-                err
-            })
-        }
-    },
-
-    async verify_user(req, res) {
-        token = req.query.token
-        jwt.verify(token, api_config.api.jwt_secret, (err, user) => {   
-            if (err) {
-                res.status(401).json("Invalid token");
-                return
-            }
-            req.user = user
-        })
-        if (! req.user) return
-
-        username = req.user.username
+            const newUser = new Users({
+                username: req.body.username,
+                email: req.body.email,
+                phone: req.body.phone,
+                user_type: "user",
+                password: bcrypt.hashSync(req.body.password, 10)
+            });
+            const user = await newUser.save();
+            return res.status(201).json({
+              success: true,
+              message: 'User registered successfully',
+              user: newUser,
+            });
+          } catch (error) {
+            console.log(error.message);
+            return res.status(500).json({ success: false, error: error.message });
+          }
         
-        let is_verify = await Users.updateOne({
-            username: username
-        }, {
-            "$set": {
-                verify: true
-            }
-        }, {
-            upsert: true
-        })
-        if (is_verify.modifiedCount > 0) {
-            res.status(200).json({
-                "message" : "Xac thuc thanh cong vui long login"
-            })
-        }else{
-            res.status(500).json({
-                "message" : "khong ther verify, vui long thu lai"
-            })
-        }
     },
+
 
     /* login existing user */
     async login_user(req, res) {
