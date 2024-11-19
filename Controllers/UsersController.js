@@ -2,28 +2,12 @@ const User = require('../models/Users');
 
 const UserController = {
 
-    /* get all users */
-    async get_users(req, res) {
-        try {
-            const users = await User.find();
-            res.status(200).json({
-                type: "success",
-                users
-            });
-        } catch (err) {
-            res.status(500).json({
-                type: "error",
-                message: "Something went wrong please try again",
-                err
-            })
-        }
-       
-    },
+ 
 
     /* get single user */
     async get_user(req, res) {
         try {
-            const user = await User.findById(req.params.id);
+            const user = await User.findById(req.user.id);
             const { password, ...data } = user._doc;
             res.status(200).json({
                 type: "success",
@@ -31,6 +15,7 @@ const UserController = {
             });
 
         } catch (err) {
+            console.log(err)
             res.status(500).json({
                 type: "error",
                 message: "Something went wrong please try again",
@@ -39,36 +24,7 @@ const UserController = {
         }
     },
 
-    /* get user stats */
-    async get_stats(req, res) {
-        const date = new Date();
-        const lastYear = new Date(date.setFullYear(date.getFullYear() - 1));
-        try {
-            const data = await User.aggregate([
-                { $match : { 
-                    createdAt: { $gte: lastYear }
-                }},
-                { $project: { 
-                    month: { $month: "$createdAt"}
-                }},
-                { $group : {
-                    _id: "$month", 
-                    total: { $sum: 1},
-                }}
-            ]);
-            res.status(200).json({
-                type: "success",
-                data
-            })
-        } catch (err) {
-            res.status(500).json({
-                type: "error",
-                message: "Something went wrong please try again",
-                err
-            })
-        }
-    },
-
+   
     /* update user */
     async update_user(req, res) {
         if(req.body.password) {
