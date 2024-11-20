@@ -11,7 +11,6 @@ const ReviewController = {
             res.status(422).json({
                 type: "not invalid",
                 message: "Something went wrong please try again",
-
             })
             return
         }
