@@ -1,7 +1,8 @@
+const otpGenerator = require('otp-generator');
 const Users = require('../models/Users');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const nodemailer = require('nodemailer');
 const api_config = require("../configs/api.js");
 
 
@@ -145,7 +146,101 @@ const AuthController = {
         error: error.message,
       });
     }
-  }
+  },
+
+  async reset_password(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      // Kiểm tra xem email có tồn tại trong hệ thống không
+      const user = await Users.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          type: "error",
+          message: "Email not found",
+        });
+      }
+
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      let newPassword = "";
+
+      while (true) {
+        // Tạo mật khẩu ngẫu nhiên
+        newPassword = otpGenerator.generate(10, {
+          upperCaseAlphabets: true,
+          lowerCaseAlphabets: true,
+          digits: true,
+          specialChars: true,
+        });
+
+        // Kiểm tra xem mật khẩu có hợp lệ không
+        if (passwordRegex.test(newPassword)) {
+          break;
+        }
+      }
+        // Hash mật khẩu trước khi lưu
+        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+        // Cập nhật mật khẩu trong cơ sở dữ liệu
+        user.password = hashedPassword;
+        await user.save();
+
+        // Cấu hình và gửi email
+        const transporter = nodemailer.createTransport({
+          host: "smtp.gmail.com",
+          auth: {
+            user: "toanocchocute@gmail.com",
+            pass: "hopc uyya qdgx fxkm",
+          }
+        });
+
+        const mailOptions = {
+          from: process.env.EMAIL_USERNAME,
+          to: email,
+          subject: "Password Reset Request",
+          html: `
+          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <h2 style="color: #4CAF50;">Password Reset Request</h2>
+            <p>Dear <strong>${user.username}</strong>,</p>
+            <p>You have requested to reset your password. Here is your new password:</p>
+            <div style="background-color: #f9f9f9; border: 1px solid #ddd; padding: 10px; margin: 10px 0;">
+              <strong style="font-size: 18px; color: #333;">${newPassword}</strong>
+            </div>
+            <p style="margin: 20px 0; color: #666;">
+              Please log in using this new password and make sure to change it as soon as possible for security reasons.
+            </p>
+            <hr style="border: none; border-top: 1px solid #ddd;" />
+            <p style="font-size: 12px; color: #999;">
+              If you did not request this reset, please ignore this email or contact our support team.
+            </p>
+          </div>
+        `,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error(error);
+            return res.status(500).json({
+              type: "error",
+              message: "Failed to send email",
+            });
+          } else {
+            console.log("Email sent: " + info.response);
+            return res.status(200).json({
+              type: "success",
+              message: "New password sent to your email",
+            });
+          }
+        });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({
+          type: "error",
+          message: "Something went wrong",
+          error: error.message,
+        });
+      }
+    }
 }
 
   module.exports = AuthController;
