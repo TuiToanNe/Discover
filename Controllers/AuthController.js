@@ -178,69 +178,156 @@ const AuthController = {
           break;
         }
       }
-        // Hash mật khẩu trước khi lưu
-        const hashedPassword = bcrypt.hashSync(newPassword, 10);
+      // Hash mật khẩu trước khi lưu
+      const hashedPassword = bcrypt.hashSync(newPassword, 10);
 
-        // Cập nhật mật khẩu trong cơ sở dữ liệu
-        user.password = hashedPassword;
-        await user.save();
+      // Cập nhật mật khẩu trong cơ sở dữ liệu
+      user.password = hashedPassword;
+      await user.save();
 
-        // Cấu hình và gửi email
-        const transporter = nodemailer.createTransport({
-          host: "smtp.gmail.com",
-          auth: {
-            user: "toanocchocute@gmail.com",
-            pass: "hopc uyya qdgx fxkm",
+      // Cấu hình và gửi email
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        auth: {
+          user: "toanocchocute@gmail.com",
+          pass: "hopc uyya qdgx fxkm",
+        }
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: email,
+        subject: "Password Reset Request",
+        html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset</title>
+        <style>
+          body {
+            font-family: "Helvetica", "Arial", sans-serif;
+            background: linear-gradient(135deg, #f3f4f6, #eaeaea);
+            margin: 0;
+            padding: 0;
+            color: #444;
           }
-        });
-
-        const mailOptions = {
-          from: process.env.EMAIL_USERNAME,
-          to: email,
-          subject: "Password Reset Request",
-          html: `
-          <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <h2 style="color: #4CAF50;">Password Reset Request</h2>
-            <p>Dear <strong>${user.username}</strong>,</p>
-            <p>You have requested to reset your password. Here is your new password:</p>
-            <div style="background-color: #f9f9f9; border: 1px solid #ddd; padding: 10px; margin: 10px 0;">
-              <strong style="font-size: 18px; color: #333;">${newPassword}</strong>
-            </div>
-            <p style="margin: 20px 0; color: #666;">
-              Please log in using this new password and make sure to change it as soon as possible for security reasons.
-            </p>
-            <hr style="border: none; border-top: 1px solid #ddd;" />
-            <p style="font-size: 12px; color: #999;">
-              If you did not request this reset, please ignore this email or contact our support team.
-            </p>
+          .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+          }
+          .header {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 1px;
+          }
+          .content {
+            padding: 25px 35px;
+            text-align: center;
+          }
+          .content p {
+            font-size: 16px;
+            line-height: 1.8;
+            margin: 15px 0;
+          }
+          .password {
+            display: inline-block;
+            font-size: 28px;
+            font-weight: bold;
+            color: #2575fc;
+            background: #f4f8ff;
+            border: 2px solid #6a11cb;
+            padding: 15px 40px;
+            margin: 20px 0;
+            border-radius: 8px;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 16px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+          .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+          }
+          .footer {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            padding: 20px 10px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eeeeee;
+          }
+          .footer a {
+            color: #2575fc;
+            text-decoration: none;
+          }
+          .footer a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            Password Reset
           </div>
-        `,
-        };
+          <div class="content">
+            <p>Hello,</p>
+            <p>Your password has been successfully reset. Please use the new password below to log in:</p>
+            <div class="password">${newPassword}</div>
+            <p>We recommend changing this password after logging in to ensure your account's security.</p>
+          </div>
+          <div class="footer">
+            &copy; 2024 Discover Viet Nam. All rights reserved.<br>
+            <a href="https://yourwebsite.com/privacy">Privacy Policy</a> | <a href="https://yourwebsite.com/support">Support</a>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+      };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.error(error);
-            return res.status(500).json({
-              type: "error",
-              message: "Failed to send email",
-            });
-          } else {
-            console.log("Email sent: " + info.response);
-            return res.status(200).json({
-              type: "success",
-              message: "New password sent to your email",
-            });
-          }
-        });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({
-          type: "error",
-          message: "Something went wrong",
-          error: error.message,
-        });
-      }
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error(error);
+          return res.status(500).json({
+            type: "error",
+            message: "Failed to send email",
+          });
+        } else {
+          console.log("Email sent: " + info.response);
+          return res.status(200).json({
+            type: "success",
+            message: "New password sent to your email",
+          });
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        type: "error",
+        message: "Something went wrong",
+        error: error.message,
+      });
     }
+  }
 }
 
-  module.exports = AuthController;
+module.exports = AuthController;
