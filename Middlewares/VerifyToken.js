@@ -8,7 +8,7 @@ const authenticationVerifier = (req, res, next)=> {
     const authHeader = req.headers.authorization;
 
     if (authHeader) {
-        const token = authHeader.split(' ')[0];
+        const token = authHeader.split(' ')[1];
         jwt.verify(token, api_config.api.jwt_secret,(err, user)=>{
             if(err) res.status(401).json("Invalid token");
             req.user = user;

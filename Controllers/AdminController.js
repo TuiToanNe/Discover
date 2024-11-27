@@ -1,3 +1,4 @@
+const Destination = require("../models/Destination");
 const Users = require("../models/Users");
 
 
@@ -52,7 +53,129 @@ const AdminController = {
                 console.log(error);
             }
 
+        },
+
+        async add_destination(req, res, next) {
+            const { name, category, price, description, address, rating, location, open_hours, close_hours, transportation, service, type } = req.body;
+        
+            try {
+                // Kiểm tra middleware đã thêm req.user hay chưa
+                const adminId = req.user?.id;
+                if (!adminId) {
+                    return res.status(401).json({ message: "Unauthorized" });
+                }
+        
+                const image_url = req.files.map(file => file.filename); // Đúng hơn: dùng req.files thay vì files
+
+        
+                // Tạo điểm đến mới
+                const destination = await Destination.create({
+                    name,
+                    category,
+                    price,
+                    description,
+                    address,
+                    rating,
+                    location,
+                    open_hours,
+                    close_hours,
+                    transportation,
+                    image_url,
+                    service,
+                    type
+                });
+        
+                await destination.save();
+        
+                return res.status(200).json(destination);
+        
+            } catch (error) {
+                console.error("Error in add_destination:", error);
+                return res.status(500).json({ message: "Server Error", error });
+            }
+        },
+
+        async get_all_destination(req, res, next) {
+
+            try {
+                
+                const allDestination = await Destination.find();
+
+                if(allDestination) {
+
+                    return res.status(200).json(allDestination);
+
+                } else {
+
+                    return res.status(400).json('Chưa có địa điểm nào!');
+
+                }
+
+            } catch (error) {
+                console.log(error);
+            }
+
+        },
+
+        async update_destination(req, res, next) {
+            try {
+                const destinationId = req.params.id; // Lấy ID từ params
+                const { price, description, open_hours, close_hours } = req.body; // Lấy dữ liệu từ body
+        
+                // Kiểm tra ID
+                if (!destinationId) {
+                    return res.status(400).json({ message: "Destination ID is required" });
+                }
+        
+                // Tìm destination trong database
+                const existingDestination = await Destination.findById(destinationId);
+                if (!existingDestination) {
+                    return res.status(404).json({ message: "Destination not found" });
+                }
+        
+                // Lấy file ảnh (nếu có)
+                const image_url = req.files ? req.files.map(file => file.filename) : existingDestination.image_url;
+        
+                // Cập nhật thông tin
+                existingDestination.price = price || existingDestination.price;
+                existingDestination.description = description || existingDestination.description;
+                existingDestination.open_hours = open_hours || existingDestination.open_hours;
+                existingDestination.close_hours = close_hours || existingDestination.close_hours;
+                existingDestination.image_url = image_url;
+        
+                // Lưu thay đổi vào database
+                await existingDestination.save();
+        
+                return res.status(200).json(existingDestination);
+            } catch (error) {
+                console.error("Error in update_destination:", error);
+                return res.status(500).json({ message: "Server Error", error });
+            }
+        },
+
+        async delete_destination(req, res, next) {
+
+            try {
+
+                const destinationId = req.params.id;
+
+                const destination = await Destination.findById(destinationId);
+
+                if(destination) {
+
+                    return res.status(200).json('Đã xoá thành công địa điểm này!');
+
+                } else {
+                    return res.status(400).json('Không tìm thấy địa điểm này!');
+                }
+                
+            } catch (error) {
+                console.log(error);
+            }
+
         }
+        
+        
 
     
 }

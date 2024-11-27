@@ -1,66 +1,66 @@
 const mongoose = require("mongoose");
 const { v4: uuidv4 } = require("uuid"); // Import hàm tạo UUID
 
-const DestinationSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      index  : true
+  const DestinationSchema = new mongoose.Schema(
+    {
+      name: {
+        type: String,
+        required: true,
+        index  : true
+      },
+      category: {
+        type: String,
+        required: true,
+      },
+      price: {
+        type: Number,
+        required: true,
+        index: true,
+      },
+      description: {
+        type: String,
+        required: true,
+      },
+      address: {
+        type: String,
+        required: true,
+      },
+      rating: {
+        type: Number,
+        index: true,
+      },
+      location: {
+        type: String,
+        // required: true,
+        index: true,
+      },
+      open_hours: {
+        type: String,
+        required: true,
+      },
+      close_hours: {
+        type: String,
+        required: true,
+      },
+      transportation: {
+        type: String,
+        required: true,
+      },
+      image_url: {
+        type: [String],
+        // required: true,
+      },
+      distance: {
+        type: String,
+        // required: true,
+      },
+      service: {
+        type: String,
+        // required: true,
+      },
     },
-    category: {
-      type: String,
-      required: true,
-    },
-    price: {
-      type: Number,
-      required: true,
-      index: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    address: {
-      type: String,
-      required: true,
-    },
-    rating: {
-      type: Number,
-      index: true,
-    },
-    location: {
-      type: String,
-      // required: true,
-      index: true,
-    },
-    open_hours: {
-      type: String,
-      required: true,
-    },
-    close_hours: {
-      type: String,
-      required: true,
-    },
-    transportation: {
-      type: String,
-      required: true,
-    },
-    image_url: {
-      type: String,
-      // required: true,
-    },
-    distance: {
-      type: String,
-      // required: true,
-    },
-    service: {
-      type: String,
-      // required: true,
-    },
-  },
-  { timestamps: true }
-);
+    { timestamps: true }
+  );
 
 // // Tạo model từ schema
 // DestinationSchema.pre("save", async function (next) {
