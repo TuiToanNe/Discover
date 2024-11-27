@@ -1,7 +1,8 @@
+const otpGenerator = require('otp-generator');
 const Users = require('../models/Users');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-
+const nodemailer = require('nodemailer');
 const api_config = require("../configs/api.js");
 
 
@@ -145,7 +146,188 @@ const AuthController = {
         error: error.message,
       });
     }
+  },
+
+  async reset_password(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      // Kiểm tra xem email có tồn tại trong hệ thống không
+      const user = await Users.findOne({ email });
+      if (!user) {
+        return res.status(404).json({
+          type: "error",
+          message: "Email not found",
+        });
+      }
+
+      const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      let newPassword = "";
+
+      while (true) {
+        // Tạo mật khẩu ngẫu nhiên
+        newPassword = otpGenerator.generate(10, {
+          upperCaseAlphabets: true,
+          lowerCaseAlphabets: true,
+          digits: true,
+          specialChars: true,
+        });
+
+        // Kiểm tra xem mật khẩu có hợp lệ không
+        if (passwordRegex.test(newPassword)) {
+          break;
+        }
+      }
+      // Hash mật khẩu trước khi lưu
+      const hashedPassword = bcrypt.hashSync(newPassword, 10);
+
+      // Cập nhật mật khẩu trong cơ sở dữ liệu
+      user.password = hashedPassword;
+      await user.save();
+
+      // Cấu hình và gửi email
+      const transporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        auth: {
+          user: "toanocchocute@gmail.com",
+          pass: "hopc uyya qdgx fxkm",
+        }
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL_USERNAME,
+        to: email,
+        subject: "Password Reset Request",
+        html: `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset</title>
+        <style>
+          body {
+            font-family: "Helvetica", "Arial", sans-serif;
+            background: linear-gradient(135deg, #f3f4f6, #eaeaea);
+            margin: 0;
+            padding: 0;
+            color: #444;
+          }
+          .email-container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+          }
+          .header {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+            font-size: 26px;
+            font-weight: bold;
+            letter-spacing: 1px;
+          }
+          .content {
+            padding: 25px 35px;
+            text-align: center;
+          }
+          .content p {
+            font-size: 16px;
+            line-height: 1.8;
+            margin: 15px 0;
+          }
+          .password {
+            display: inline-block;
+            font-size: 28px;
+            font-weight: bold;
+            color: #2575fc;
+            background: #f4f8ff;
+            border: 2px solid #6a11cb;
+            padding: 15px 40px;
+            margin: 20px 0;
+            border-radius: 8px;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            font-size: 16px;
+            color: #ffffff;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            border-radius: 8px;
+            text-decoration: none;
+            margin-top: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+          }
+          .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25);
+          }
+          .footer {
+            font-size: 14px;
+            color: #777;
+            text-align: center;
+            padding: 20px 10px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eeeeee;
+          }
+          .footer a {
+            color: #2575fc;
+            text-decoration: none;
+          }
+          .footer a:hover {
+            text-decoration: underline;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="email-container">
+          <div class="header">
+            Password Reset
+          </div>
+          <div class="content">
+            <p>Hello,</p>
+            <p>Your password has been successfully reset. Please use the new password below to log in:</p>
+            <div class="password">${newPassword}</div>
+            <p>We recommend changing this password after logging in to ensure your account's security.</p>
+          </div>
+          <div class="footer">
+            &copy; 2024 Discover Viet Nam. All rights reserved.<br>
+            <a href="https://yourwebsite.com/privacy">Privacy Policy</a> | <a href="https://yourwebsite.com/support">Support</a>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error(error);
+          return res.status(500).json({
+            type: "error",
+            message: "Failed to send email",
+          });
+        } else {
+          console.log("Email sent: " + info.response);
+          return res.status(200).json({
+            type: "success",
+            message: "New password sent to your email",
+          });
+        }
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({
+        type: "error",
+        message: "Something went wrong",
+        error: error.message,
+      });
+    }
   }
 }
 
-  module.exports = AuthController;
+module.exports = AuthController;

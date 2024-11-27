@@ -117,7 +117,7 @@ async function sendVerificationEmail(email, otp) {
             <div class="otp">${otp}</div>
           </div>
           <div class="footer">
-            &copy; 2024 Your Company. All rights reserved.<br>
+            &copy; 2024 Discover Viet Nam . All rights reserved.<br>
             <a href="https://yourwebsite.com/privacy">Privacy Policy</a> | <a href="https://yourwebsite.com/support">Support</a>
           </div>
         </div>

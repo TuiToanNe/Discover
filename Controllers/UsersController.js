@@ -166,7 +166,8 @@ const UserController = {
             error: err.message,
           });
         }
-    }
+    },
+
 }
       
 
