@@ -17,5 +17,13 @@ const ReviewSchema = new mongoose.Schema({
         type : String,
         require:true,
     },
+    image:{
+        type: String, 
+        default:""
+    },
+    video:{
+        type: String, 
+        default:""
+    }
 })
 module.exports = mongoose.model('Review', ReviewSchema);
