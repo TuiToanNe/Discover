@@ -42,6 +42,6 @@ router.get('/all-destination', authenticationVerifier, AdminController.get_all_d
 router.put('/update-destination/:id', authenticationVerifier, image_url, AdminController.update_destination);
 
 //DELETE DESTINATION
-router.delete('/delete-destination/:id', authenticationVerifier, AdminController.delete_destinationdestination);
+router.delete('/delete-destination/:id', authenticationVerifier, AdminController.delete_destination);
 
 module.exports = router;

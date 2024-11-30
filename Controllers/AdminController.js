@@ -159,7 +159,7 @@ const AdminController = {
 
                 const destinationId = req.params.id;
 
-                const destination = await Destination.findById(destinationId);
+                const destination = await Destination.findByIdAndDelete(destinationId);
 
                 if(destination) {
 
