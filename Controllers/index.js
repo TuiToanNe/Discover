@@ -4,6 +4,7 @@ const ReviewController = require('./ReviewController.js');
 const DestinationController = require("./DestinationController.js")
 const FiltersController = require("./FiltersController.js")
 const AdminController = require('./AdminController.js');
+const WishlistController = require("./wishlistController.js")
 
 
 module.exports = {
@@ -12,5 +13,6 @@ module.exports = {
     ReviewController,
     DestinationController,
     FiltersController,
-    AdminController
+    AdminController,
+    WishlistController
 }

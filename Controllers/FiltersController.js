@@ -46,48 +46,45 @@ const FiltersController = {
     // Filter method
     async Filter(req, res) {
         try {
-            const { address, service, rating, minPrice, maxPrice, category, page = 1, limit = 10 } = req.body;
-            // Initialize filter object
-            const filter = {};
-
-            // Build dynamic filters
-            if (address) filter.address = address;
-            if (service) filter.service = service;
-            if (category) filter.category = category;
-            if (rating) filter.rating = { $gte: parseInt(rating), $lt: parseInt(rating) + 1 };
-            if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
-            if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
-
-            // Pagination settings
-            const skip = (parseInt(page) - 1) * parseInt(limit);
-
-            // Query the database based on filters
-            const docs = await Destination.find(filter)
-                .skip(skip)
-                .limit(parseInt(limit))
-                .exec();
-
-            // Get the total count of documents for pagination
-            const totalDocs = await Destination.countDocuments(filter);
-
-            // Return results with pagination info
-            res.status(200).json({
-                type: "success",
-                page: parseInt(page),
-                limit: parseInt(limit),
-                totalDocs,
-                totalPages: Math.ceil(totalDocs / limit),
-                docs,
-            });
+          const { location, service, rating, minPrice, maxPrice, category, page = 1, limit = 10 } = req.body;
+    
+          const filter = {};
+    
+          // Kiểm tra và áp dụng các bộ lọc
+          if (location && location.length) filter.location = { $in: location };
+          if (service && service.length) filter.service = { $in: service };
+          if (category && category.length) filter.category = { $in: category };
+        //   if (rating && rating.length) filter.rating = { $in: rating.map(Number) };
+        if (rating) {
+            const ratingValue = parseFloat(rating);
+            if (ratingValue === 5) {
+              filter.rating = { $eq: 5 }; // Chỉ lấy kết quả có rating đúng bằng 5
+            } else if (ratingValue === 4) {
+              filter.rating = { $gte: 4, $lte: 5 }; // Lấy rating từ 4 đến 5
+            } else if (ratingValue === 3) {
+              filter.rating = { $gte: 3, $lte: 5 }; // Lấy rating từ 3 đến 5
+            }
+          }
+          if (minPrice) filter.price = { ...filter.price, $gte: parseFloat(minPrice) };
+          if (maxPrice) filter.price = { ...filter.price, $lte: parseFloat(maxPrice) };
+    
+          const skip = (parseInt(page) - 1) * parseInt(limit);
+          const docs = await Destination.find(filter).skip(skip).limit(parseInt(limit)).exec();
+          const totalDocs = await Destination.countDocuments(filter);
+    
+          res.status(200).json({
+            type: "success",
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalDocs,
+            totalPages: Math.ceil(totalDocs / limit),
+            docs,
+          });
         } catch (error) {
-            console.error("Filter error:", error);
-            res.status(500).json({
-                type: "error",
-                message: "Đã xảy ra lỗi trong quá trình lọc.",
-                error: error.message,
-            });
+          console.error("Lỗi trong quá trình lọc:", error);
+          res.status(500).json({ type: "error", message: "Lỗi server.", error: error.message });
         }
-    }
+      },
 };
 
 module.exports = FiltersController;

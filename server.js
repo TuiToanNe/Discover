@@ -21,7 +21,7 @@ mongoose.connect("mongodb+srv://toanocchocute:toandeptrai@store.ec6vh.mongodb.ne
     process.exit();
 });
 
-const { auth_route, user_route, review_router, destination_router, filters_router,otp_router, admin_router  } = require('./routes');
+const { auth_route, user_route, review_router, destination_router, filters_router,otp_router, admin_router ,wishlistRoutes } = require('./routes');
 const PlanController = require("./routes/Plan");
 
 app.use('/api/v1/auth', auth_route);
@@ -32,6 +32,7 @@ app.use('/api/v1/filters',filters_router)
 app.use('/api/v1/sendOtp',otp_router)
 app.use('/api/v1/admin',admin_router)
 app.use("/api/v1/plan", PlanController);
+app.use('/api/v1/wishlist', wishlistRoutes);
 
 
 
