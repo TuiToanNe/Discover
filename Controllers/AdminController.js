@@ -124,7 +124,7 @@ const AdminController = {
         async update_destination(req, res, next) {
             try {
                 const destinationId = req.params.id; // Lấy ID từ params
-                const { price, description, open_hours, close_hours } = req.body; // Lấy dữ liệu từ body
+                const { price, description, open_hours, close_hours, } = req.body; // Lấy dữ liệu từ body
         
                 // Kiểm tra ID
                 if (!destinationId) {
@@ -146,6 +146,7 @@ const AdminController = {
                 existingDestination.open_hours = open_hours || existingDestination.open_hours;
                 existingDestination.close_hours = close_hours || existingDestination.close_hours;
                 existingDestination.image_url = image_url;
+                
         
                 // Lưu thay đổi vào database
                 await existingDestination.save();
