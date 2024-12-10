@@ -1,5 +1,6 @@
 const Destination = require("../models/Destination");
 const Users = require("../models/Users");
+const getCoordinates = require('../utils/createCoordiante')
 
 
 
@@ -56,11 +57,14 @@ const AdminController = {
         },
 
         async add_destination(req, res, next) {
-            const { name, category, price, description, address, rating, location, open_hours, close_hours, transportation,distance ,service, type, lat,lng } = req.body;
+            const { name, category, price, description, address, rating, location, open_hours, close_hours, transportation,distance ,service, type } = req.body;
         
+            const {lat, lon} = await getCoordinates(address);
+
             try {
                 // Kiểm tra middleware đã thêm req.user hay chưa
                 const adminId = req.user?.id;
+
                 if (!adminId) {
                     return res.status(401).json({ message: "Unauthorized" });
                 }
@@ -85,7 +89,7 @@ const AdminController = {
                     service,
                     type,
                     lat,
-                    lng
+                    lng: lon
 
                 });
         

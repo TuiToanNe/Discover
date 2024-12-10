@@ -13,7 +13,7 @@ router.get('/:id', async (req, res) => {
       }
       res.status(200).json(destination);
     } catch (error) {
-      res.status(500).json({ message: 'Error fetching destination details', error });
+      res.status(500).json({ message: 'Error fetching destination details', error });                                                                                                                                                                                                          
     }
   });
 // router.get("/categories", destinationController.getCategories);
