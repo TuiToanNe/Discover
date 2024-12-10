@@ -57,9 +57,9 @@ const AdminController = {
         },
 
         async add_destination(req, res, next) {
-            const { name, category, price, description, address, rating, location, open_hours, close_hours, transportation,distance ,service, type } = req.body;
+            const { name, category, price, description, place, rating, location, open_hours, close_hours, transportation,distance ,service, type } = req.body;
         
-            const {lat, lon} = await getCoordinates(address);
+            const {lat, lon} = await getCoordinates(place);
 
             try {
                 // Kiểm tra middleware đã thêm req.user hay chưa
@@ -78,7 +78,7 @@ const AdminController = {
                     category,
                     price,
                     description,
-                    address,
+                    place,
                     rating,
                     location,
                     open_hours,

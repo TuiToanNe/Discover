@@ -5,10 +5,10 @@
  */
 
 //CONVERT ADDRESS TO COORDINATES
-async function getCoordinates(address) {
+async function getCoordinates(place) {
   const baseUrl = "https://nominatim.openstreetmap.org/search";
   const params = new URLSearchParams({
-    q: address,
+    q: place,
     format: "json",
     addressdetails: "1",
     limit: "1",

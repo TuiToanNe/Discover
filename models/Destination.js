@@ -56,6 +56,10 @@ const DestinationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    place: {
+      type: String,
+      required: true
+    },
     lat: {
       type: Number, // Kinh độ
       required: false,
